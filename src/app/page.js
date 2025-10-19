@@ -40,7 +40,7 @@ export default function Page() {
 
     try {
       for (let i = 1; i <= form.repeat; i++) {
-        const res = await fetch('https://email-sending-backend.onrender.com', {
+        const res = await fetch('https://email-sending-backend.onrender.com/send-email', {
 
           method: "POST",
           body: formData,

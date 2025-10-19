@@ -1,103 +1,160 @@
-import Image from "next/image";
+"use client";
+import React, { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-export default function Home() {
+export default function Page() {
+  const [form, setForm] = useState({
+    to: "",
+    subject: "",
+    message: "",
+    repeat: 1,
+    attachment: null,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [fileName, setFileName] = useState("No file chosen");
+
+  const handleChange = (e) => {
+    const { id, value, files } = e.target;
+    if (id === "attachment") {
+      setForm({ ...form, attachment: files[0] });
+      setFileName(files[0] ? files[0].name : "No file chosen");
+    } else {
+      setForm({ ...form, [id]: value });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setProgress(0);
+
+    const formData = new FormData();
+    formData.append("to", form.to);
+    formData.append("subject", form.subject);
+    formData.append("message", form.message);
+    formData.append("repeat", form.repeat);
+    if (form.attachment) formData.append("attachment", form.attachment);
+
+    try {
+      for (let i = 1; i <= form.repeat; i++) {
+        const res = await fetch("http://localhost:5000/send-email", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        setProgress(i);
+      }
+
+      toast.success("✅ All emails sent successfully!");
+    } catch (err) {
+      toast.error("❌ Failed to send email.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="w-[90%] m-auto mt-5 border-2 border-[#E2E8F0] rounded-md flex flex-col p-5 bg-white">
+      <h1 className="text-2xl font-semibold">Compose Email</h1>
+      <p className="text-gray-600">Create your email content and attach files</p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <form onSubmit={handleSubmit} className="flex flex-col py-8 gap-3">
+        <label htmlFor="to" className="font-semibold">
+          To
+        </label>
+        <input
+          type="email"
+          id="to"
+          className="text-[0.85rem] border-2 border-[#E2E8F0] h-9 w-full rounded-md p-3"
+          placeholder="receivermail@example.com"
+          value={form.to}
+          onChange={handleChange}
+          required
+        />
+
+        <label htmlFor="subject" className="font-semibold">
+          Subject
+        </label>
+        <input
+          type="text"
+          id="subject"
+          className="text-[0.85rem] border-2 border-[#E2E8F0] h-9 w-full rounded-md p-3"
+          placeholder="Subject of your mail"
+          value={form.subject}
+          onChange={handleChange}
+          required
+        />
+
+        <label htmlFor="message" className="font-semibold">
+          Body
+        </label>
+        <textarea
+          id="message"
+          className="text-[0.85rem] border-2 border-[#E2E8F0] w-full min-h-60 rounded-md p-3"
+          placeholder="Type your mail here..."
+          value={form.message}
+          onChange={handleChange}
+          required
+        ></textarea>
+
+        <label htmlFor="repeat" className="font-semibold">
+          Repeat
+        </label>
+        <input
+          type="number"
+          id="repeat"
+          className="text-[0.85rem] border-2 border-[#E2E8F0] h-9 w-full rounded-md p-3"
+          placeholder="1"
+          value={form.repeat}
+          onChange={handleChange}
+          min="1"
+        />
+
+        {/* Styled File Upload */}
+        <label htmlFor="attachment" className="font-semibold">
+          Attachment (optional)
+        </label>
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="attachment"
+            className="bg-[hsl(222,47%,11%)] text-white text-sm px-4 py-2 rounded-md cursor-pointer hover:bg-[hsl(222,47%,17%)] transition w-fit"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            📎 Choose File
+            <input
+              type="file"
+              id="attachment"
+              className="hidden"
+              accept=".pdf,.jpg,.png,.docx"
+              onChange={handleChange}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </label>
+          <p className="text-gray-500 text-sm italic">{fileName}</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Loader */}
+        {loading ? (
+          <div className="flex flex-col items-center mt-4">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-blue-600 font-medium mt-2">
+              Sending emails... {progress}
+            </p>
+          </div>
+        ) : (
+          <button
+            type="submit"
+            className="bg-[hsl(222,47%,11%)] hover:bg-[hsl(222,47%,17%)] text-white p-2 w-40 rounded-md transition mt-4"
+          >
+            Send Email
+          </button>
+        )}
+      </form>
+
+      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
     </div>
   );
 }

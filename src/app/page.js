@@ -40,7 +40,7 @@ export default function Page() {
 
     try {
       for (let i = 1; i <= form.repeat; i++) {
-        const res = await fetch('https://https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email', {
+        const res = await fetch('https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email', {
 
           method: "POST",
           body: formData,

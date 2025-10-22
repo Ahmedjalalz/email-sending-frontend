@@ -13,13 +13,11 @@ export default function Page() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   // ✅ Handle input and file changes
   const handleChange = (e) => {
     const { id, value, files } = e.target;
     if (id === "attachments") {
-      // Append new files without replacing old ones
       const newFiles = [...form.attachments, ...Array.from(files)];
       setForm({ ...form, attachments: newFiles });
     } else {
@@ -34,11 +32,10 @@ export default function Page() {
     setForm({ ...form, attachments: newFiles });
   };
 
-  // ✅ Submit the form
+  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setProgress(0);
 
     const formData = new FormData();
     formData.append("to", form.to);
@@ -51,23 +48,18 @@ export default function Page() {
     });
 
     try {
-      for (let i = 1; i <= form.repeat; i++) {
-        const res = await fetch(
-          "https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+      const res = await fetch(
+        "https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
-        // Update progress
-        setProgress(i);
-      }
-
-      toast.success("✅ All emails sent successfully!");
+      toast.success(data.message || "✅ All emails sent successfully!");
     } catch (err) {
       toast.error("❌ Failed to send email.");
       console.error(err);
@@ -172,7 +164,7 @@ export default function Page() {
           <div className="flex flex-col items-center mt-4">
             <div className="w-10 h-10 border-4 border-[hsl(222,47%,11%)] border-t-transparent rounded-full animate-spin"></div>
             <p className="text-[hsl(222,47%,11%)] font-medium mt-2">
-              Sending email {progress} of {form.repeat}...
+              Sending emails...
             </p>
           </div>
         ) : (

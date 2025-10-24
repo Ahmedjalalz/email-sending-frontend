@@ -11,8 +11,8 @@ export default function Page() {
     repeat: 1,
     attachments: [],
   });
-
   const [loading, setLoading] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
 
   // ✅ Handle input and file changes
   const handleChange = (e) => {
@@ -36,32 +36,37 @@ export default function Page() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setSentCount(0);
 
     const formData = new FormData();
     formData.append("to", form.to);
     formData.append("subject", form.subject);
     formData.append("message", form.message);
     formData.append("repeat", form.repeat);
-
     form.attachments.forEach((file) => {
       formData.append("attachments", file);
     });
 
+    const total = parseInt(form.repeat) || 1;
+
     try {
-      const res = await fetch(
-        "https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      // Send emails one by one to track progress
+      for (let i = 0; i < total; i++) {
+        const res = await fetch(
+          "https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+        if (!res.ok) throw new Error("Failed to send email");
+        setSentCount((prev) => prev + 1);
+      }
 
-      toast.success(data.message || "✅ All emails sent successfully!");
+      toast.success(`✅ All ${total} emails sent successfully!`);
     } catch (err) {
-      toast.error("❌ Failed to send email.");
+      toast.error("❌ Failed to send one or more emails.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -117,9 +122,7 @@ export default function Page() {
         />
 
         {/* Attachments */}
-        <label htmlFor="attachments" className="font-semibold">
-          Attachments (optional)
-        </label>
+        <label htmlFor="attachments" className="font-semibold">Attachments</label>
         <div className="flex flex-col gap-2">
           <label
             htmlFor="attachments"
@@ -130,9 +133,9 @@ export default function Page() {
               type="file"
               id="attachments"
               className="hidden"
-              accept=".pdf,.jpg,.png,.docx,.txt"
               multiple
               onChange={handleChange}
+              accept=".pdf,.jpg,.png,.docx,.txt"
             />
           </label>
 
@@ -164,7 +167,7 @@ export default function Page() {
           <div className="flex flex-col items-center mt-4">
             <div className="w-10 h-10 border-4 border-[hsl(222,47%,11%)] border-t-transparent rounded-full animate-spin"></div>
             <p className="text-[hsl(222,47%,11%)] font-medium mt-2">
-              Sending emails...
+              Sending {sentCount} of {form.repeat} emails...
             </p>
           </div>
         ) : (

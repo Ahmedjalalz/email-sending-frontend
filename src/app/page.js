@@ -135,7 +135,8 @@ export default function Page() {
               className="hidden"
               multiple
               onChange={handleChange}
-              accept=".pdf,.jpg,.png,.docx,.txt"
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.mp4,.zip,application/*,text/*,image/*,video/*"
+              capture="false"
             />
           </label>
 

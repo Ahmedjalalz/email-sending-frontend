@@ -53,7 +53,7 @@ export default function Page() {
       // Send emails one by one to track progress
       for (let i = 0; i < total; i++) {
         const res = await fetch(
-          "https://similar-cornelle-ahmedjalal-8bdad1e9.koyeb.app/send-email",
+          "https://causal-eileen-ahmedjalal-31d030e7.koyeb.app/send-email",
           {
             method: "POST",
             body: formData,
